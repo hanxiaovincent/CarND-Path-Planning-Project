@@ -144,7 +144,7 @@ static State nextState(
   const State& state, const CarNeighbors& neighbors, 
   double car_d, double car_speed)
 {
-  double closeDistance = 25.0;
+  double closeDistance = 20.0;
   State re = state;
   // keep current lane state, if blocked by front car, switch to pass state.
   if(state.state == 0)
@@ -194,14 +194,10 @@ static void generatePath(
   std::vector<double>& next_y_vals)
 {
   double target_d = laneTod(target_lane);
-  double brakeDistance = 25.0;
-  int totalPoints = 30;
+  double brakeDistance = 20.0;
+  int totalPoints = 20;
   int pointsToGenerate = totalPoints - previous_path_x.size();
   double acc = 0.1;
-
-  std::cout << "front car distance " << neighbors.frontCarDist << " speed "<< neighbors.frontCarSpeed / 0.4474 <<std::endl;
-  std::cout << "left cars " << neighbors.leftFrontCarDist << ", "<< neighbors.leftBackCarDist <<std::endl;
-  std::cout << "right cars " << neighbors.rightFrontCarDist << ", "<< neighbors.rightBackCarDist <<std::endl;
 
   // generate anchor points
   std::vector<Eigen::Vector2d> anchor_points;
@@ -280,18 +276,16 @@ static void generatePath(
 
   double x_spline_prev = 0;
   for(int i = 0; i < pointsToGenerate; ++i)
-  {
+  {    
     if(neighbors.frontCarDist > brakeDistance)
     {
       car_speed_ref = fmin(speedLimit, car_speed_ref + acc);
     }
-    else
+    else if (car_speed_ref > neighbors.frontCarSpeed)
     {
-      if(car_speed_ref > neighbors.frontCarSpeed * 0.5)
-      {
-        car_speed_ref -= acc;
-      }
+      car_speed_ref -= 0.5 * acc;
     }
+    
     
     double N = target_dist / (0.02 * car_speed_ref);
     double x_spline_cur = x_spline_prev + target_x / N;
